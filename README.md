@@ -6,7 +6,7 @@ A script to start a set of programs and put their windows in specified arrangeme
 
 
 # Usecases:
-1. Instead of juggling multiple apps and windows every time you start a specific workflow, you can write a config once, run this through a `.desktop` and be ready to start your task in no time.
+1. Instead of juggling multiple apps and windows every time you start a specific workflow, you can write a config once, run this through a `.desktop` file and be ready to start your task in no time.
 2. In conjunction with KDE Activities and its feature of triggering scripts.
 
 If you put a script into `~/.local/share/kactivitymanagerd/activities/ACTIVITY_UUID/started`, it will be executed when the activity starts. Other supported events are `stopped`, `activated` and `deactivated`.
