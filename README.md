@@ -2,7 +2,10 @@
 
 A script to start a set of programs and put their windows in specified arrangements. 
 
-Usecases:
+![x11-activity-session](https://user-images.githubusercontent.com/10449980/209897951-21c7ec9c-e784-4349-9c9a-a44634a26a6a.gif)
+
+
+# Usecases:
 1. Called through a `.desktop` file for opening multiple apps in specified arrangements at once.
 2. In conjunction with KDE Activities and its feature of triggering scripts.
 
