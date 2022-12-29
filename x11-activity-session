@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+function printHelp(){
+  for i in $(seq 1 $COLUMNS); do echo -n '─'; done; echo ''
+  echo -e 'How to use:'
+  echo -e ''
+  echo -e '\tx11-activity-session \e[1;31m-c \e[1;35m~/.mySession.json\e[1;30m # Starts the apps and positions them according to your session config \e[0m'
+  echo -e ''
+  echo -e 'Options'
+  echo -e '\t\e[1;31m-h\e[1;30m # Prints this help \e[0m'
+  echo -e '\t\e[1;31m-c \e[1;35m~/.mySession.json\e[1;30m # Specifies the path to a config file \e[0m'
+  echo -e ''
+  echo -e 'Config file example:'
+  echo -e ''
+  echo -e '\t{'
+  echo -e '\t  "apps": ['
+  echo -e '\t    {'
+  echo -e '\t      "exec": "dolphin",'
+  echo -e '\t      "position": "960,0",'
+  echo -e '\t      "size": "960,493",'
+  echo -e '\t      "detectionDelay": 0.5'
+  echo -e '\t    },'
+  echo -e '\t    {'
+  echo -e '\t      "exec": "konsole",'
+  echo -e '\t      "position": "960,523",'
+  echo -e '\t      "size": "960,493",'
+  echo -e '\t      "detectionDelay": 0.5'
+  echo -e '\t    }'
+  echo -e '\t  ]'
+  echo -e '\t}'
+  echo -e ''
+  for i in $(seq 1 $COLUMNS); do echo -n '─'; done; echo ''
+  exit 0
+}
+
+function startApp() {
+  local exec position size detectionDelay pid
+
+  exec="$1"
+  position="$2"
+  size="$3"
+  detectionDelay="$4"
+
+  pid=$(bash -c "$exec"'&>/dev/null & disown && echo $!')
+  sleep "$detectionDelay"
+  id=$(wmctrl -lp | grep "$pid" | awk '{print $1;}')
+  echo "$exec pid: $pid id: $id"
+
+  wmctrl -i -r "$id" -b 'remove,sticky'
+  wmctrl -i -r "$id" -b 'remove,maximized_horz'
+  wmctrl -i -r "$id" -b 'remove,maximized_vert'
+  wmctrl -i -r "$id" -e "1,$position,$size"
+}
+
+function checkDependencies() {
+  hash jq 2>/dev/null || { echo >&2 "This script requires jq but it's not installed. Aborting."; exit 1; }
+  hash wmctrl 2>/dev/null || { echo >&2 "This script requires wmctrl but it's not installed. Aborting."; exit 1; }
+  hash awk 2>/dev/null || { echo >&2 "This script requires awk but it's not installed. Aborting."; exit 1; }
+}
+
+function main() {
+  local configJson
+  configJson="$1"
+
+  readarray -t apps < <(jq -c '.apps[]' "$configJson") #convert to bash arrays and remove trailing newline for each line (if any)
+
+  IFS=$'\n' #read til newline
+  for app in "${apps[@]}"; do
+    local exec position size detectionDelay
+
+    exec=$(jq -r '.exec' <<< "${app}")
+    position=$(jq -r '.position' <<< "${app}")
+    size=$(jq -r '.size' <<< "${app}")
+    detectionDelay=$(jq '.detectionDelay' <<< "${app}")
+
+    echo "$exec at pos $position with size $size and detectionDelay $detectionDelay"
+    startApp "$exec" "$position" "$size" "$detectionDelay"
+  done
+  unset IFS
+}
+
+while getopts "hc:" OPT
+do
+    case "$OPT" in
+        h) printHelp ;;
+        c)
+          c=${OPTARG}
+          checkDependencies
+          echo "Running with config $c"
+          main "$c"
+          exit 0
+          ;;
+        ?) printHelp ;;
+    esac
+done
+
+printHelp
