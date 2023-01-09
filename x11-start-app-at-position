@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+
+#___Config_____________________________________________________________________________________________#
+
+detectionFrequency="0.1s"
+detectionTimeout="15"
+killProcessOnFail="True"
+
+
+#___Helpers____________________________________________________________________________________________#
+
+function printDivider() {
+  local i
+  for i in $(seq 1 $COLUMNS); do echo -n '─'; done; echo ''
+}
+
+function printHelp(){
+  printDivider
+  echo -e 'How to use:'
+  echo -e ''
+  echo -e '\tx11-start-app-at-position\e[1;31m konsole\e[1;35m 0,0 960,1080\e[1;30m # Starts the apps and positions it at posX,posY (from top left corner) with width,height size \e[0m'
+  echo -e ''
+  printDivider
+  exit 0
+}
+
+
+#___Actual_code________________________________________________________________________________________#
+
+if [ $# -eq 0 ]; then
+    >&2 echo "No arguments provided"
+    printHelp
+    exit 1
+fi
+
+
+exec="$1"
+position="$2"
+size="$3"
+
+pid=$(bash -c "$exec"'&>/dev/null & disown && echo $!')
+id=""
+startTime=$(date +%s)
+
+while [[ -z "$id" ]] && (( $(date +%s) - startTime < detectionTimeout ))
+do
+  sleep $detectionFrequency
+  id=$(wmctrl -lp | grep "$pid" | awk '{print $1;}')
+done
+
+if [[ -z "$id" ]]; then
+  echo "Timeout after $detectionTimeout seconds. Failed to detect a window of app: $exec"
+  [[ -n "$pid" ]] && [[ "$killProcessOnFail" == "True" ]] && echo "Killing app: $exec process: $pid" && kill "$pid"
+  exit 0
+fi
+
+echo "Started app: $exec | pid: $pid | windowID: $id"
+
+wmctrl -i -r "$id" -b 'remove,sticky'
+wmctrl -i -r "$id" -b 'remove,maximized_horz'
+wmctrl -i -r "$id" -b 'remove,maximized_vert'
+wmctrl -i -r "$id" -e "1,$position,$size"

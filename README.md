@@ -18,20 +18,17 @@ If you put a script into `~/.local/share/kactivitymanagerd/activities/ACTIVITY_U
     {
       "exec": "kalendar",
       "position": "0,0",
-      "size": "960,1016",
-      "detectionDelay": 1
+      "size": "960,1016"
     },
     {
       "exec": "dolphin",
       "position": "960,0",
-      "size": "960,493",
-      "detectionDelay": 0.5
+      "size": "960,493"
     },
     {
       "exec": "konsole",
       "position": "960,523",
-      "size": "960,493",
-      "detectionDelay": 0.5
+      "size": "960,493"
     }
   ]
 }
