@@ -46,7 +46,7 @@ startTime=$(date +%s)
 while [[ -z "$id" ]] && (( $(date +%s) - startTime < detectionTimeout ))
 do
   sleep $detectionFrequency
-  id=$(wmctrl -lp | grep "$pid" | awk '{print $1;}')
+  id=$(wmctrl -lp | grep ' '"$pid"' ' | awk '{print $1;}')
 done
 
 if [[ -z "$id" ]]; then
@@ -55,9 +55,11 @@ if [[ -z "$id" ]]; then
   exit 0
 fi
 
-echo "Started app: $exec | pid: $pid | windowID: $id"
+echo "Started app: ($exec) | pid: $pid | windowID: $id"
 
 wmctrl -i -r "$id" -b 'remove,sticky'
 wmctrl -i -r "$id" -b 'remove,maximized_horz'
 wmctrl -i -r "$id" -b 'remove,maximized_vert'
 wmctrl -i -r "$id" -e "1,$position,$size"
+
+echo "Moved app to position: $position with size: $size"

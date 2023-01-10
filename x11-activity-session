@@ -61,8 +61,8 @@ function main() {
     position=$(jq -r '.position' <<< "${app}")
     size=$(jq -r '.size' <<< "${app}")
 
-    echo "$exec at pos $position with size $size"
-    ./x11-start-app-at-position.bash "$exec" "$position" "$size" >"$outDirectory/$i.out" 2>&1 &
+    echo "Reading config: ($exec) at position: $position with size: $size"
+    x11-start-app-at-position "$exec" "$position" "$size" >"$outDirectory/$i.out" 2>&1 &
   done
   unset IFS
 
@@ -87,6 +87,7 @@ do
           c=${OPTARG}
           checkDependencies
           echo "Running with config $c"
+          echo ""
           main "$c"
           exit 0
           ;;
